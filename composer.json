@@ -1,0 +1,36 @@
+{
+    "name": "axguowen/think-webworker",
+    "description": "A Simple Web Framework Extension For ThinkPHP With Workerman",
+    "keywords": [
+        "webworker",
+        "workerman",
+        "thinkphp"
+    ],    
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "axguowen",
+            "email": "axguowen@qq.com"
+        }
+    ],
+    "require": {
+        "topthink/framework": "^6.1|^8.0",
+        "workerman/workerman": "^4.1",
+        "ext-fileinfo": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "think\\": "src"
+        }
+    },
+    "extra": {
+        "think":{
+            "services":[
+                "think\\webworker\\Service"
+            ],
+            "config": {
+                "webworker": "src/webworker/config.php"
+            }
+        }
+    }
+}
