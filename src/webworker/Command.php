@@ -51,7 +51,7 @@ class Command extends Base
             // 移除think
             array_shift($argv);
             // 追加当前目录的index.php
-            array_unshift($argv, dirname(__DIR__) . DIRECTORY_SEPARATOR . 'index.php');
+            array_unshift($argv, dirname(__DIR__) . DIRECTORY_SEPARATOR . 'start.php');
             // 构造新命令
             $command = sprintf('%s %s', PHP_BINARY, implode(' ', $argv));
             // 执行命令
