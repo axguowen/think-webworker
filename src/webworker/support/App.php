@@ -42,6 +42,8 @@ class App extends \think\App
 			'think\Event' 		=> Event::class,
 			'think\Http' 		=> Http::class,
 			'think\Middleware' 	=> Middleware::class,
+			// 设置session初始化中间件别名
+			'think\middleware\SessionInit' 	=> middleware\SessionInit::class,
 		]);
 
         // 执行父类架构方法
@@ -124,6 +126,11 @@ class App extends \think\App
 		$this->middleware->reinitialize();
 		// 初始化事件监听实例
 		$this->event->reinitialize();
+		// 如果容器中存在Session对象实例
+		if($this->exists('session')){
+		    // 清空session数据
+			$this->session->clear();
+		}
 		// 初始化数据库查询次数
 		$this->db->clearQueryTimes();
 		// 返回

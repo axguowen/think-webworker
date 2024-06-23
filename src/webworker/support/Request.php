@@ -23,6 +23,12 @@ use Workerman\Protocols\Http\Request as WorkerRequest;
 class Request extends \think\Request
 {
     /**
+     * 当前worker请求对象
+     * @var WorkerRequest
+     */
+    protected $workerRequest;
+
+    /**
      * 获取当前根域名
      * @access public
      * @param App $app
@@ -58,6 +64,22 @@ class Request extends \think\Request
         $this->request = $_REQUEST = array_merge([], $_GET, $_POST, $_COOKIE);
         // FILE参数
         $this->file = $_FILES = $workerRequest->file();
+        // 当前worker请求对象
+        $this->workerRequest = $workerRequest;
+    }
+
+    /**
+     * 获取sessionId
+     * @access public
+     * @return string
+     */
+    public function sessionId()
+    {
+        // 如果worker请求对象不存在
+        if(is_null($this->workerRequest)){
+            return '';
+        }
+        return $this->workerRequest->sessionId();
     }
 
 	/**
