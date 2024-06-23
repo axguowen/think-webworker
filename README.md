@@ -5,12 +5,19 @@
 
 ## 特点
 1、深度兼容ThinkPHP，现有ThinkPHP业务代码几乎不用做任何更改即可使用
+
 2、性能比传统php-fpm环境高10-20倍
+
 3、支持ThinkPHP的Cookie使用
+
 4、支持ThinkPHP的Session使用
+
 5、支持ThinkPHP的多应用模式
+
 6、支持ThinkPHP的多应用中间件
+
 7、多应用模式支持配置应用入口文件
+
 8、多应用模式支持配置应用目录以支持composer依赖包的应用
 
 ## 安装
