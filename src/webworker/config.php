@@ -26,6 +26,6 @@ return [
     'max_package_size' => 10 * 1024 * 1024,
     // 请求一定数量后，退出进程重开，防止内存溢出
     'request_limit' => 10000,
-	// 应用入口文件配置
-	'app_entrance_files' => [],
+    // 应用入口文件配置
+    'app_entrance_files' => [],
 ];
