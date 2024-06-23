@@ -170,14 +170,14 @@ class Request extends \think\Request
             }
             elseif(is_array($appEntrance)) {
                 // 如果存在应用名
-                if(!empty($appEntrance['name'])){
+                if(!empty($appEntrance['app_name'])){
                     // 设置应用名
-                    $app->http->name($appEntrance['name']);
+                    $app->http->name($appEntrance['app_name']);
                 }
                 // 如果存在应用目录
-                if(!empty($appEntrance['path'])){
+                if(!empty($appEntrance['app_path'])){
                     // 设置应用名
-                    $app->http->path($appEntrance['path']);
+                    $app->http->path($appEntrance['app_path']);
                 }
             }
         }
