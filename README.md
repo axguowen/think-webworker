@@ -45,7 +45,10 @@ composer require axguowen/think-webworker
     ],
 ],
 ~~~
-注意：上面的应用入口文件只是url访问上的入口文件，并不真实存在，也不需要自己创建。
+上面的应用入口文件只是url访问上的入口文件，并不真实存在，也不需要自己创建。
+
+## 注意
+ThinkPHP内置的\think\Request类已经做了别名映射到\think\webworker\support\Request类，如果需自定义Request类，则自定义Request类需要继承\think\webworker\support\Request类，并在app目录下的provider.php文件里面将\think\webworker\support\Request类映射到自定义Request类。
 
 ## 启动
 命令行执行以下代码：
