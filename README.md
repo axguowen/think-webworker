@@ -57,3 +57,14 @@ php think webworker
 ~~~
 
 启动成功后在浏览器访问127.0.0.1:8989即可
+
+Linux下支持以守护进程模式启动：
+~~~
+php think webworker start -d
+~~~
+
+## 停止
+守护进程运行模式下在命令行执行以下代码停止服务：
+~~~
+php think webworker stop
+~~~
