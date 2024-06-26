@@ -50,7 +50,7 @@ class Command extends Base
         if (isset($argv[0]) && $argv[0] == 'think') {
             // 移除think
             array_shift($argv);
-            // 追加当前目录的index.php
+            // 指定启动文件
             array_unshift($argv, dirname(__DIR__) . DIRECTORY_SEPARATOR . 'start.php');
             // 构造新命令
             $command = sprintf('%s %s', PHP_BINARY, implode(' ', $argv));
