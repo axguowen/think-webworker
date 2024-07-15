@@ -1,7 +1,7 @@
 # Webworker Extension For ThinkPHP
 
 ## 介绍
-一个类似于Workerman的ThinkPHP Webworker扩展库
+一个类似于webman的ThinkPHP Webworker扩展库
 
 ## 特点
 1、深度兼容ThinkPHP，现有ThinkPHP业务代码几乎不用做任何更改即可使用
