@@ -181,6 +181,10 @@ class Webworker
      */
 	public function onWorkerStart(Worker $worker): void
 	{
+		// 清除opcache缓存
+        if (is_callable('opcache_reset')) {
+            opcache_reset();
+        }
 		// 实例化WEB应用容器
 		$this->webApp = new WebApp();
 		// 初始化
