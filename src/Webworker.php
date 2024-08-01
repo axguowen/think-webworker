@@ -201,9 +201,9 @@ class Webworker
 	public function onMessage(TcpConnection $connection, WorkerRequest $workerRequest): void
 	{
 		// 访问资源文件
-		$file = $this->webApp->getRootPath() . 'public' . DIRECTORY_SEPARATOR . $workerRequest->uri();
+		$file = $this->webApp->getRootPath() . 'public' . $workerRequest->uri();
 		// 启用静态文件支持且文件存在
-		if ($this->options['static_support'] && is_file($file)) {
+		if ($this->options['static_support'] && false !== strpos($file, '.php') && is_file($file)) {
 			// 获取if-modified-since头
 			$if_modified_since = $workerRequest->header('if-modified-since');
 			// 检查if-modified-since头判断文件是否修改过
