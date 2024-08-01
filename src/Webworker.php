@@ -255,14 +255,17 @@ class Webworker
 			}
 
 			$keepAlive = $workerRequest->header('connection');
+			// 获取cookie
+			$cookies = $this->webApp->cookie->getCookie();
+			// 响应
+			$response = (new WorkerResponse($response->getCode(), $header))->withBody($content)->withCookies($cookies);
+			// 如果是keep-alive则保持连接
 			if (($keepAlive === null && $workerRequest->protocolVersion() === '1.1') || strtolower($keepAlive) === 'keep-alive') {
-				// 获取cookie
-				$cookies = $this->webApp->cookie->getCookie();
-				// 响应
-				$response = (new WorkerResponse($response->getCode(), $header))->withBody($content)->withCookies($cookies);
 				$connection->send($response);
-			} else {
-				$connection->close($content);
+			}
+			// 响应并关闭连接
+			else {
+				$connection->close($response);
 			}
 		} catch (HttpException | \Exception | \Throwable $e) {
 			// 响应头
@@ -285,9 +288,10 @@ class Webworker
 			}
 			// 获取cookie
 			$cookies = $this->webApp->cookie->getCookie();
-			// 响应
+			// 获取响应体
 			$response = (new WorkerResponse($code, $header))->withBody($body)->withCookies($cookies);
-			$connection->send($response);
+			// 响应并关闭连接
+			$connection->close($response);
 		}
 		
 		// 请求一定数量后，退出进程重开，防止内存溢出
