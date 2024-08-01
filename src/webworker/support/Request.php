@@ -194,6 +194,8 @@ class Request extends \think\Request
 			'HTTP_ACCEPT_ENCODING' => $workerRequest->header('accept-encoding'),
 			'HTTP_COOKIE'          => $workerRequest->header('cookie'),
 			'HTTP_CONNECTION'      => $workerRequest->header('connection'),
+			'HTTP_ORIGIN'          => $workerRequest->header('origin'),
+            'HTTP_REFERER'         => $workerRequest->header('referer'),
 			'CONTENT_TYPE'         => $workerRequest->header('content-type'),
 			'REMOTE_ADDR'          => $connection->getRemoteIp(),
 			'REMOTE_PORT'          => $connection->getRemotePort(),
