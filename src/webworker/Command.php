@@ -67,6 +67,7 @@ class Command extends Base
             'pcntl_signal',
             'pcntl_alarm',
             'pcntl_fork',
+            'pcntl_wait',
             'posix_getuid',
             'posix_getpwuid',
             'posix_kill',
@@ -79,7 +80,6 @@ class Command extends Base
             'posix_initgroups',
             'posix_setuid',
             'posix_isatty',
-            'pcntl_wait'
         ];
         // 当前禁用的函数
         $disableFunctions = explode(',', ini_get('disable_functions'));
@@ -111,12 +111,15 @@ class Command extends Base
             $output->writeln('Starting webworker...');
         }
 
-        if ($this->input->hasOption('daemon')) {
-            Worker::$daemonize = true;
+        // 读取配置
+        $options = $this->app->config->get('webworker', []);
+        // 如果是守护进程模式
+        if ($input->hasOption('daemon')) {
+            $options['daemonize'] = true;
         }
 
         // 实例化
-        $webworker = $this->app->make(Webworker::class, [$input, $output]);
+        $webworker = $this->app->make(Webworker::class, [$options]);
 
         if (DIRECTORY_SEPARATOR == '\\') {
             $output->writeln('You can exit with <info>`CTRL-C`</info>');

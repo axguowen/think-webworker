@@ -11,12 +11,9 @@
 
 namespace think;
 
-use think\App;
-use think\console\Input;
-use think\console\Output;
 use think\exception\Handle;
 use think\exception\HttpException;
-use think\webworker\support\App as WebApp;
+use think\webworker\support\App;
 use think\webworker\support\WorkerResponse;
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
@@ -53,24 +50,6 @@ class Webworker
         'log_file' => '',
     ];
 
-    /**
-     * App实例
-     * @var App
-     */
-    protected $app;
-
-    /**
-     * Input实例
-     * @var Input
-     */
-    protected $input;
-
-    /**
-     * Output实例
-     * @var Output
-     */
-    protected $output;
-
 	/**
 	 * Worker实例
 	 * @var Worker
@@ -79,25 +58,20 @@ class Webworker
 
 	/**
 	 * web应用实例
-	 * @var support\App
+	 * @var App
 	 */
-	protected $webApp;
+	protected $app;
 
     /**
      * 架构函数
      * @access public
-     * @param App $app 应用实例
-     * @param Input $input 输入
-     * @param Output $output 输出
+     * @param array $options 配置参数
      * @return void
      */
-    public function __construct(App $app, Input $input, Output $output)
+    public function __construct(array $options = [])
     {
-        $this->app = $app;
-        $this->input = $input;
-        $this->output = $output;
         // 合并配置
-        $this->options = array_merge($this->options, $this->app->config->get('webworker'));
+        $this->options = array_merge($this->options, $options);
 		// 初始化
 		$this->init();
     }
@@ -119,10 +93,10 @@ class Webworker
         }
 
 		// 构造新的运行时目录
-		$runtimePath = $this->app->getRuntimePath() . $this->worker->name . DIRECTORY_SEPARATOR;
+		$runtimePath = \think\facade\App::getRuntimePath() . $this->worker->name . DIRECTORY_SEPARATOR;
 
         // 设置runtime路径
-        $this->app->setRuntimePath($runtimePath);
+        \think\facade\App::setRuntimePath($runtimePath);
 
         // 设置进程数量
         $this->worker->count = $this->options['count'];
@@ -163,7 +137,7 @@ class Webworker
 		Worker::$logFile = $this->options['log_file'];
 
         // 如果指定以守护进程方式运行
-        if ($this->input->hasOption('daemon') || true === $this->options['daemonize']) {
+        if (true === $this->options['daemonize']) {
             Worker::$daemonize = true;
         }
 
@@ -186,9 +160,9 @@ class Webworker
             opcache_reset();
         }
 		// 实例化WEB应用容器
-		$this->webApp = new WebApp();
+		$this->app = new App();
 		// 初始化
-		$this->webApp->initialize();
+		$this->app->initialize();
 	}
 
 	/**
@@ -201,7 +175,7 @@ class Webworker
 	public function onMessage(TcpConnection $connection, WorkerRequest $workerRequest): void
 	{
 		// 访问资源文件
-		$file = $this->webApp->getRootPath() . 'public' . $workerRequest->uri();
+		$file = $this->app->getRootPath() . 'public' . $workerRequest->uri();
 		// 启用静态文件支持且文件存在
 		if ($this->options['static_support'] && false !== strpos($file, '.php') && is_file($file)) {
 			// 获取if-modified-since头
@@ -226,7 +200,7 @@ class Webworker
 			return;
 		}
 		// 重新初始化
-        $this->webApp->reinitialize($connection, $workerRequest);
+        $this->app->reinitialize($connection, $workerRequest);
 
 		try {
 			// 逻辑处理 START
@@ -236,13 +210,13 @@ class Webworker
 
 			ob_start();
 
-			$response = $this->webApp->http->run($this->webApp->request);
+			$response = $this->app->http->run($this->app->request);
 			$content  = ob_get_clean();
 
 			ob_start();
 
 			$response->send();
-			$this->webApp->http->end($response);
+			$this->app->http->end($response);
 
 			$content .= ob_get_clean() ?: '';
 			// 逻辑处理 END
@@ -256,7 +230,7 @@ class Webworker
 
 			$keepAlive = $workerRequest->header('connection');
 			// 获取cookie
-			$cookies = $this->webApp->cookie->getCookie();
+			$cookies = $this->app->cookie->getCookie();
 			// 响应
 			$response = (new WorkerResponse($response->getCode(), $header))->withBody($content)->withCookies($cookies);
 			// 如果是keep-alive则保持连接
@@ -279,15 +253,15 @@ class Webworker
 			// 如果是异常
 			if ($e instanceof \Exception) {
 				// 异常处理器
-				$handler = $this->webApp->make(Handle::class);
+				$handler = $this->app->make(Handle::class);
 				$handler->report($e);
 				// 渲染错误
-				$resp = $handler->render($this->webApp->request, $e);
+				$resp = $handler->render($this->app->request, $e);
 				$code = $resp->getCode();
 				$body = $resp->getContent();
 			}
 			// 获取cookie
-			$cookies = $this->webApp->cookie->getCookie();
+			$cookies = $this->app->cookie->getCookie();
 			// 获取响应体
 			$response = (new WorkerResponse($code, $header))->withBody($body)->withCookies($cookies);
 			// 响应并关闭连接
