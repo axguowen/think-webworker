@@ -10,7 +10,7 @@
 // +----------------------------------------------------------------------
 declare (strict_types = 1);
 
-namespace think\webworker\support;
+namespace think\webworker\support\think;
 
 /**
  * Web应用管理类

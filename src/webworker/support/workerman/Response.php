@@ -9,11 +9,11 @@
 // | Author: axguowen <axguowen@qq.com>
 // +----------------------------------------------------------------------
 
-namespace think\webworker\support;
+namespace think\webworker\support\workerman;
 
-use Workerman\Protocols\Http\Response;
+use Workerman\Protocols\Http\Response as Base;
 
-class WorkerResponse extends Response
+class Response extends Base
 {
 	/**
      * 动态设置cookie

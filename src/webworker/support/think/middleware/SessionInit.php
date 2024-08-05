@@ -10,7 +10,7 @@
 // +----------------------------------------------------------------------
 declare (strict_types = 1);
 
-namespace think\webworker\support\middleware;
+namespace think\webworker\support\think\middleware;
 
 use Closure;
 use think\App;

@@ -10,7 +10,7 @@
 // +----------------------------------------------------------------------
 declare (strict_types = 1);
 
-namespace think\webworker\support;
+namespace think\webworker\support\think;
 
 use think\App;
 use Workerman\Connection\TcpConnection;

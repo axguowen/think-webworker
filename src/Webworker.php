@@ -13,11 +13,11 @@ namespace think;
 
 use think\exception\Handle;
 use think\exception\HttpException;
-use think\webworker\support\App;
-use think\webworker\support\WorkerResponse;
+use think\webworker\support\think\App;
+use think\webworker\support\workerman\Response;
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
-use Workerman\Protocols\Http\Request as WorkerRequest;
+use Workerman\Protocols\Http\Request;
 
 class Webworker
 {
@@ -169,38 +169,39 @@ class Webworker
      * 接收请求回调
      * @access public
 	 * @param TcpConnection $connection
-	 * @param WorkerRequest $workerRequest
+	 * @param Request $request
 	 * @return void
      */
-	public function onMessage(TcpConnection $connection, WorkerRequest $workerRequest): void
+	public function onMessage(TcpConnection $connection, Request $request): void
 	{
 		// 访问资源文件
-		$file = $this->app->getRootPath() . 'public' . $workerRequest->uri();
+		$file = $this->app->getRootPath() . 'public' . $request->uri();
 		// 启用静态文件支持且文件存在
 		if ($this->options['static_support'] && false !== strpos($file, '.php') && is_file($file)) {
 			// 获取if-modified-since头
-			$if_modified_since = $workerRequest->header('if-modified-since');
+			$if_modified_since = $request->header('if-modified-since');
 			// 检查if-modified-since头判断文件是否修改过
 			if (!empty($if_modified_since)) {
 				$modified_time = date('D, d M Y H:i:s', filemtime($file)) . ' ' . \date_default_timezone_get();
-				// 文件未修改则返回304
+				// 文件未修改
 				if ($modified_time === $if_modified_since) {
-					$connection->send(new WorkerResponse(304));
+					// 则返回304
+					$connection->send(new Response(304));
 					return;
 				}
 			}
 
 			// 文件修改过或者没有if-modified-since头则发送文件
-			$response = (new WorkerResponse(200, [
+			$response = (new Response(200, [
 				'Server' => $this->worker->name,
 			]))->withFile($file);
+			// 发送文件
 			$connection->send($response);
-
-			// 返回
 			return;
 		}
+
 		// 重新初始化
-        $this->app->reinitialize($connection, $workerRequest);
+        $this->app->reinitialize($connection, $request);
 
 		try {
 			// 逻辑处理 START
@@ -228,19 +229,19 @@ class Webworker
 				$header[$name] = !is_null($val) ? $val : '';
 			}
 
-			$keepAlive = $workerRequest->header('connection');
+			$keepAlive = $request->header('connection');
 			// 获取cookie
 			$cookies = $this->app->cookie->getCookie();
 			// 响应
-			$response = (new WorkerResponse($response->getCode(), $header))->withBody($content)->withCookies($cookies);
+			$response = (new Response($response->getCode(), $header))->withBody($content)->withCookies($cookies);
 			// 如果是keep-alive则保持连接
-			if (($keepAlive === null && $workerRequest->protocolVersion() === '1.1') || strtolower($keepAlive) === 'keep-alive') {
+			if (($keepAlive === null && $request->protocolVersion() === '1.1') || strtolower($keepAlive) === 'keep-alive') {
+				// 发送响应
 				$connection->send($response);
+				return;
 			}
 			// 响应并关闭连接
-			else {
-				$connection->close($response);
-			}
+			$connection->close($response);
 		} catch (HttpException | \Exception | \Throwable $e) {
 			// 响应头
 			$header = [
@@ -263,7 +264,7 @@ class Webworker
 			// 获取cookie
 			$cookies = $this->app->cookie->getCookie();
 			// 获取响应体
-			$response = (new WorkerResponse($code, $header))->withBody($body)->withCookies($cookies);
+			$response = (new Response($code, $header))->withBody($body)->withCookies($cookies);
 			// 响应并关闭连接
 			$connection->close($response);
 		}

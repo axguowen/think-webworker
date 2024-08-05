@@ -26,17 +26,18 @@ composer require axguowen/think-webworker
 ~~~
 
 ## 配置
-修改config目录的webworker.php配置文件，设置好监听地址跟端口，默认为监听网卡，端口8989
+修改config目录的`webworker.php`配置文件，设置好监听地址跟端口，默认为监听所有网卡IP，端口8989
 
 多应用模式说明：
 如果安装了ThinkPHP官方的多应用依赖包，则默认自动多应用识别，也可以通过应用入口文件的方式来访问指定应用，如果需要设置应用入口文件与应用名不一样，可以配置app_entrance_files参数，
-例如你的后台admin应用，入口文件名使用了test.php，那么入口文件配置参数如下：
+例如你的后台admin应用，入口文件名使用了`test.php`，那么入口文件配置参数如下：
 ~~~php
 'app_entrance_files' => [
     'test.php' => 'admin',
 ]
 ~~~
-如果需要给test.php入口文件指定应用目录，则配置参数如下：
+
+如果需要给`test.php`入口文件指定应用目录，则配置参数如下：
 ~~~php
 'app_entrance_files' => [
     'test.php' => [
@@ -47,8 +48,8 @@ composer require axguowen/think-webworker
 ~~~
 上面的应用入口文件只是url访问上的入口文件，并不真实存在，也不需要自己创建。
 
-## 注意
-ThinkPHP内置的\think\Request类已经做了别名映射到\think\webworker\support\Request类，如果需自定义Request类，则自定义Request类需要继承\think\webworker\support\Request类，并在app目录下的provider.php文件里面将\think\webworker\support\Request类映射到自定义Request类。
+## 注意（非常重要）
+ThinkPHP内置的`\think\Request`类已经做了别名映射到`\think\webworker\support\think\Request`类，<br/>如果需自定义请求类，则自定义请求类需要继承`\think\webworker\support\think\Request`类，<br/>然后在app目录下的provider.php文件里面将`\think\webworker\support\think\Request`类映射到自定义的请求类。
 
 ## 启动
 命令行执行以下代码：
