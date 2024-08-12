@@ -83,23 +83,29 @@ class Webworker
      */
     protected function init()
     {
-		// 实例化worker
-		$this->worker = new Worker('http://' . $this->options['host'] . ':' . $this->options['port']);
-
-        // 设置进程名称
-        $this->worker->name = $this->options['name'];
-        if(empty($this->worker->name)){
-            $this->worker->name = 'think-webworker';
+		// 进程名称为空
+		if(empty($this->options['name'])){
+            $this->options['name'] = 'think-webworker';
         }
 
 		// 构造新的运行时目录
-		$runtimePath = \think\facade\App::getRuntimePath() . $this->worker->name . DIRECTORY_SEPARATOR;
-
+		$runtimePath = \think\facade\App::getRuntimePath() . $this->options['name'] . DIRECTORY_SEPARATOR;
         // 设置runtime路径
         \think\facade\App::setRuntimePath($runtimePath);
 
-        // 设置进程数量
-        $this->worker->count = $this->options['count'];
+		// 主进程reload
+		Worker::$onMasterReload = function () {
+			// 清理opcache
+            if (function_exists('opcache_get_status')) {
+                if ($status = opcache_get_status()) {
+                    if (isset($status['scripts']) && $scripts = $status['scripts']) {
+                        foreach (array_keys($scripts) as $file) {
+                            opcache_invalidate($file, true);
+                        }
+                    }
+                }
+            }
+        };
 
         // 内容输出文件路径
 		if(!empty($this->options['stdout_file'])){
@@ -113,7 +119,7 @@ class Webworker
 		}
         // pid文件路径
 		if(empty($this->options['pid_file'])){
-			$this->options['pid_file'] = $runtimePath . 'worker' . DIRECTORY_SEPARATOR . $this->worker->name . '.pid';
+			$this->options['pid_file'] = $runtimePath . 'worker' . DIRECTORY_SEPARATOR . $this->options['name'] . '.pid';
 		}
 
 		// 目录不存在则自动创建
@@ -126,7 +132,7 @@ class Webworker
 		
 		// 日志文件路径
 		if(empty($this->options['log_file'])){
-			$this->options['log_file'] = $runtimePath . 'worker' . DIRECTORY_SEPARATOR . $this->worker->name . '.log';
+			$this->options['log_file'] = $runtimePath . 'worker' . DIRECTORY_SEPARATOR . $this->options['name'] . '.log';
 		}
 		// 目录不存在则自动创建
 		$log_dir = dirname($this->options['log_file']);
@@ -135,12 +141,20 @@ class Webworker
 		}
 		// 指定日志文件路径
 		Worker::$logFile = $this->options['log_file'];
+		// 设置请求限制
+		TcpConnection::$defaultMaxPackageSize = $this->options['max_package_size'];
 
         // 如果指定以守护进程方式运行
         if (true === $this->options['daemonize']) {
             Worker::$daemonize = true;
         }
 
+		// 实例化worker
+		$this->worker = new Worker('http://' . $this->options['host'] . ':' . $this->options['port']);
+		// 设置进程名称
+        $this->worker->name = $this->options['name'];
+        // 设置进程数量
+        $this->worker->count = $this->options['count'];
         // 设置进程启动事件回调
         $this->worker->onWorkerStart = [$this, 'onWorkerStart'];
         // 设置接收消息事件回调
@@ -155,10 +169,6 @@ class Webworker
      */
 	public function onWorkerStart(Worker $worker): void
 	{
-		// 清除opcache缓存
-        if (is_callable('opcache_reset')) {
-            opcache_reset();
-        }
 		// 实例化WEB应用容器
 		$this->app = new App();
 		// 初始化
