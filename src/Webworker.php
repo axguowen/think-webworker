@@ -16,8 +16,10 @@ use think\exception\HttpException;
 use think\webworker\support\think\App;
 use think\webworker\support\workerman\Response;
 use Workerman\Worker;
+use Workerman\Timer;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request;
+use Throwable;
 
 class Webworker
 {
@@ -173,6 +175,30 @@ class Webworker
 		$this->app = new App();
 		// 初始化
 		$this->app->initialize();
+
+		$this->db_hart();
+	}
+
+	/**
+	 * 避免数据库连接超时
+	 * @access public
+	 * @return void
+	 */
+	public function db_heart(): void
+	{
+		$db = $this->app->db;
+		Timer::add(55, function() use($db) {
+			$intances = $db->getInstance();
+			if (count($intances) <= 0) {
+				return;
+			}
+
+			foreach($intances as $connection) {
+				try {
+					$connection->query('select 1');
+				} catch (Throwable $e) {}
+			}
+		});
 	}
 
 	/**
