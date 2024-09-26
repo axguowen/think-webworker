@@ -211,7 +211,7 @@ class Webworker
 	public function onMessage(TcpConnection $connection, Request $request): void
 	{
 		// 访问资源文件
-		$file = $this->app->getRootPath() . 'public' . $request->uri();
+		$file = $this->app->getRootPath() . 'public' . parse_url($request->uri(), PHP_URL_PATH);
 		// 启用静态文件支持且文件存在
 		if ($this->options['static_support'] && false !== strpos($file, '.php') && is_file($file)) {
 			// 获取if-modified-since头
