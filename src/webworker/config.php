@@ -28,4 +28,6 @@ return [
     'request_limit' => 10000,
     // 应用入口文件配置
     'app_entrance_files' => [],
+    // 数据库连接心跳时间间隔, 单位秒, 0为不开启
+    'db_heart_interval' => 0,
 ];

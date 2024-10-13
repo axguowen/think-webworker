@@ -175,30 +175,20 @@ class Webworker
 		$this->app = new App();
 		// 初始化
 		$this->app->initialize();
-
-		$this->db_hart();
-	}
-
-	/**
-	 * 避免数据库连接超时
-	 * @access public
-	 * @return void
-	 */
-	public function db_heart(): void
-	{
-		$db = $this->app->db;
-		Timer::add(55, function() use($db) {
-			$intances = $db->getInstance();
-			if (count($intances) <= 0) {
-				return;
-			}
-
-			foreach($intances as $connection) {
-				try {
-					$connection->query('select 1');
-				} catch (Throwable $e) {}
-			}
-		});
+		// 设置了数据库连接心跳
+		if($this->options['db_heart_interval'] > 0){
+			// 设置定时器
+			Timer::add($this->options['db_heart_interval'], function(){
+				// 获取数据库连接实例
+				$connections = $this->app->db->getInstance();
+				// 遍历数据库连接实例
+				foreach($connections as $connection) {
+					try {
+						$connection->query('select 1');
+					} catch (Throwable $e) {}
+				}
+			});
+		}
 	}
 
 	/**
