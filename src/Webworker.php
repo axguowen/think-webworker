@@ -44,6 +44,10 @@ class Webworker
         'max_package_size' => 10 * 1024 * 1024,
 		// 请求一定数量后，退出进程重开，防止内存溢出
 		'request_limit' => 3,
+		// 应用入口文件配置
+		'app_entrance_files' => [],
+		// 数据库连接心跳时间间隔, 单位秒, 0为不开启
+		'db_heart_interval' => 0,
 		// 内容输出文件路径
 		'stdout_file' => '',
         // pid文件路径
