@@ -204,32 +204,45 @@ class Webworker
      */
 	public function onMessage(TcpConnection $connection, Request $request): void
 	{
-		// 访问资源文件
-		$file = $this->app->getRootPath() . 'public' . parse_url($request->uri(), PHP_URL_PATH);
-		// 启用静态文件支持且文件存在
-		if ($this->options['static_support'] && false !== strpos($file, '.php') && is_file($file)) {
-			// 获取if-modified-since头
-			$if_modified_since = $request->header('if-modified-since');
-			// 检查if-modified-since头判断文件是否修改过
-			if (!empty($if_modified_since)) {
-				$modified_time = date('D, d M Y H:i:s', filemtime($file)) . ' ' . \date_default_timezone_get();
-				// 文件未修改
-				if ($modified_time === $if_modified_since) {
-					// 则返回304
-					$connection->send(new Response(304));
-					return;
-				}
-			}
+		// 启用静态文件支持时, 优先按静态资源处理
+        if ($this->options['static_support']) {
+            // 静态资源根目录
+            $publicDir = realpath($this->app->getRootPath() . 'public');
+            // 请求路径: Request::uri() 未做 urldecode, 需解码以支持含空格/中文的文件名; 剔除空字节防止截断攻击
+            $path = str_replace("\0", '', rawurldecode(parse_url($request->uri(), PHP_URL_PATH) ?: ''));
+            // 取真实路径以自动消除 ../ 等相对路径, 并校验必须落在 public 目录内(防止目录穿越读取任意文件)
+            $file     = false === $publicDir ? false : realpath($publicDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path));
+            $inPublic = false !== $file && 0 === strncmp($file, $publicDir . DIRECTORY_SEPARATOR, strlen($publicDir) + 1);
 
-			// 文件修改过或者没有if-modified-since头则发送文件
-			$response = (new Response(200, [
-				'Server' => $this->worker->name,
-			]))->withFile($file);
-			// 发送文件
-			$connection->send($response);
-			return;
-		}
+            if ($inPublic && is_file($file)) {
+                // 按扩展名排除 PHP 类脚本(大小写不敏感), 防止把源码当作静态文件返回
+                $ext        = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                $scriptExts = ['php', 'php2', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phar', 'inc'];
 
+                if (! in_array($ext, $scriptExts, true)) {
+                    // 获取if-modified-since头
+                    $if_modified_since = $request->header('if-modified-since');
+                    // 检查if-modified-since头判断文件是否修改过
+                    if (! empty($if_modified_since)) {
+                        $modified_time = date('D, d M Y H:i:s', filemtime($file)) . ' ' . \date_default_timezone_get();
+                        // 文件未修改
+                        if ($modified_time === $if_modified_since) {
+                            // 则返回304
+                            $connection->send(new Response(304));
+                            return;
+                        }
+                    }
+
+                    // 文件修改过或者没有if-modified-since头则发送文件
+                    $response = (new Response(200, [
+                        'Server' => $this->worker->name,
+                    ]))->withFile($file);
+                    // 发送文件
+                    $connection->send($response);
+                    return;
+                }
+            }
+        }
 		// 重新初始化
         $this->app->reinitialize($connection, $request);
 
